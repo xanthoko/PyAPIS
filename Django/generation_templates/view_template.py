@@ -44,9 +44,13 @@ def _replace_path_parameters(template_string, parameters):
 
 def _replace_body_parameters(template_string, parameters):
     total_body_params_str = ''
-    for parameter in parameters:
-        body_params_str = f"    {parameter} = request.POST['{parameter}']\n"
+    for param, required in parameters.items():
+        if required:
+            body_params_str = f"    {param} = request.POST['{param}']\n"
+        else:
+            body_params_str = f"    {param} = request.POST.get('{param}')\n)"
         total_body_params_str += body_params_str
+
     total_body_params_str = total_body_params_str[:-1]
 
     return template_string.replace('{{ body_params }}', total_body_params_str)

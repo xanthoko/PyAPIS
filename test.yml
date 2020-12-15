@@ -59,7 +59,7 @@ paths:
         - in: "body"
           name: "head"
           description: "Pet to add to the store"
-          required: true
+          required: false
           schema:
             $ref: "#/definitions/Pet"
       responses:

@@ -41,7 +41,10 @@ class DjangoCreator:
         for method, view_data in endpoint_data.items():
             parameters = view_data.get('parameters', [])
             path_parameters = [x['name'] for x in parameters if x['in'] == 'path']
-            body_parameters = [x['name'] for x in parameters if x['in'] == 'body']
+            body_parameters = {
+                x['name']: x['required']
+                for x in parameters if x['in'] == 'body'
+            }
 
         return {
             'path_parameters': path_parameters,
