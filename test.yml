@@ -12,6 +12,26 @@ consumes:
 produces:
   - "application/json"
 paths:
+  /pet/{pet_id}:
+    get:
+      tags:
+        - "pet"
+      summary: "Get a pet in the store"
+      operationId: "get_pet"
+      parameters:
+        - name: "pet_id"
+          in: "path"
+          description: "The id of the pet to retrieve"
+          required: true
+          type: "string"
+      responses:
+        "200":
+          description: "Successfully retrived pet"
+          schema:
+            $ref: "#/definitions/Pet"
+        "404":
+          description: "Pet doesn't exist"
+      x-swagger-router-controller: "test_api.web.controllers.pets_controller"
   /pet:
     get:
       tags:
