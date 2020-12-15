@@ -41,8 +41,12 @@ class DjangoCreator:
         for method, view_data in endpoint_data.items():
             parameters = view_data.get('parameters', [])
             path_parameters = [x['name'] for x in parameters if x['in'] == 'path']
+            body_parameters = [x['name'] for x in parameters if x['in'] == 'body']
 
-        return {'path_parameters': path_parameters}
+        return {
+            'path_parameters': path_parameters,
+            'body_parameters': body_parameters
+        }
 
     def _append_view_to_template(self, view_index, view_details):
         view_str = get_view_template_with_data(view_index, view_details)
