@@ -8,7 +8,7 @@ VIEWS_FILE_TEMPLATE = """from django.http import JsonResponse
 VIEW_TEMPLATE = """
 def basic_view_{{ view_index }}(request{{ path_params }}):
     if request.method == '{{ method }}':
-    {{ body_params }}
+{{ body_params }}
         return JsonResponse({})
     else:
         return JsonResponse({'error': 'Invalid method'}, status=405)\n
@@ -50,8 +50,11 @@ def _replace_path_parameters(template_string, parameters):
 
 def _replace_body_parameters(template_string, parameters):
     total_body_params_str = ''
-    for parameter in parameters:
-        body_params_str = f"    {parameter} = request.POST['{parameter}']\n"
+    for param, required in parameters.items():
+        if required:
+            body_params_str = f"        {param} = request.POST['{param}']\n"
+        else:
+            body_params_str = f"        {param} = request.POST.get('{param}')\n"
         total_body_params_str += body_params_str
 
     total_body_params_str = total_body_params_str[:-1]

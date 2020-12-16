@@ -38,6 +38,14 @@ class DjangoCreator:
         generate_complete_urls_file(self.all_paths_template)
 
     def _get_view_details(self, endpoint_data):
+        """
+        For the given endpoint, returns a dictionary that contains the method of
+        endoint its path and body parameters.
+
+        Args:
+            endpoint_data (dictionary): Contains the data for every method of the
+                endoint
+        """
         # NOTE: will be a list when multiple methods are supported
         method_and_params = {}
 
@@ -47,15 +55,21 @@ class DjangoCreator:
 
             request_body = view_data.get('requestBody')
             if request_body:
-                properties = request_body['content'][
-                    'application/x-www-form-urlencoded']['schema']['properties']
-                body_parameters = list(properties.keys())
+                # NOTE: for now we assume that every request body is form-data
+                schema = request_body['content'][
+                    'application/x-www-form-urlencoded']['schema']
+                properties = schema['properties']
+                required = schema['required']
+                body_parameters = {x: x in required for x in properties}
+                # body_parameters = list(properties.keys())
             else:
-                body_parameters = []
+                body_parameters = {}
 
             method_and_params['method'] = method
             method_and_params['path_parameters'] = path_parameters
             method_and_params['body_parameters'] = body_parameters
+
+            # TODO: handle responses
 
         return method_and_params
 
