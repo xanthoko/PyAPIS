@@ -18,12 +18,12 @@ class DjangoCreator:
 
         for ind, (path, endpoint_data) in enumerate(endpoints_dict.items()):
             full_path = base_path + path
-            full_path = full_path[1:]  # remove the first /
+            full_path = full_path[1:]  # remove the first '/'
 
             view_name = get_view_name(ind)
-            view_details = self._get_view_details(endpoint_data)
+            method_and_params = self._get_view_details(endpoint_data)
 
-            self._append_view_to_template(ind, view_details)
+            self._append_view_to_template(ind, method_and_params)
             self._append_path_to_template(full_path, view_name)
 
         self._finilize_views_template()
@@ -38,21 +38,29 @@ class DjangoCreator:
         generate_complete_urls_file(self.all_paths_template)
 
     def _get_view_details(self, endpoint_data):
+        # NOTE: will be a list when multiple methods are supported
+        method_and_params = {}
+
         for method, view_data in endpoint_data.items():
             parameters = view_data.get('parameters', [])
             path_parameters = [x['name'] for x in parameters if x['in'] == 'path']
-            body_parameters = {
-                x['name']: x['required']
-                for x in parameters if x['in'] == 'body'
-            }
 
-        return {
-            'path_parameters': path_parameters,
-            'body_parameters': body_parameters
-        }
+            request_body = view_data.get('requestBody')
+            if request_body:
+                properties = request_body['content'][
+                    'application/x-www-form-urlencoded']['schema']['properties']
+                body_parameters = list(properties.keys())
+            else:
+                body_parameters = []
 
-    def _append_view_to_template(self, view_index, view_details):
-        view_str = get_view_template_with_data(view_index, view_details)
+            method_and_params['method'] = method
+            method_and_params['path_parameters'] = path_parameters
+            method_and_params['body_parameters'] = body_parameters
+
+        return method_and_params
+
+    def _append_view_to_template(self, view_index, method_and_params):
+        view_str = get_view_template_with_data(view_index, method_and_params)
         self.all_views_template += view_str
 
     def _finilize_views_template(self):

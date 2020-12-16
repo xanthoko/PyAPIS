@@ -7,8 +7,11 @@ VIEWS_FILE_TEMPLATE = """from django.http import JsonResponse
 
 VIEW_TEMPLATE = """
 def basic_view_{{ view_index }}(request{{ path_params }}):
-{{ body_params }}
-    return JsonResponse({})\n
+    if request.method == '{{ method }}':
+    {{ body_params }}
+        return JsonResponse({})
+    else:
+        return JsonResponse({'error': 'Invalid method'}, status=405)\n
 """
 
 
@@ -20,14 +23,17 @@ def generate_complete_views_file(filled_views_template):
         f.write(filled_views_file_template)
 
 
-def get_view_template_with_data(view_index, view_details):
+def get_view_template_with_data(view_index, method_and_params):
+    method = method_and_params['method'].upper()
+
     v_temp = VIEW_TEMPLATE
     v_temp = v_temp.replace('{{ view_index }}', str(view_index))
+    v_temp = v_temp.replace('{{ method }}', method)
 
-    path_parameters = [''] + view_details['path_parameters']
+    path_parameters = [''] + method_and_params['path_parameters']
     v_temp = _replace_path_parameters(v_temp, path_parameters)
 
-    body_parameters = view_details['body_parameters']
+    body_parameters = method_and_params['body_parameters']
     v_temp = _replace_body_parameters(v_temp, body_parameters)
 
     return v_temp
@@ -44,11 +50,8 @@ def _replace_path_parameters(template_string, parameters):
 
 def _replace_body_parameters(template_string, parameters):
     total_body_params_str = ''
-    for param, required in parameters.items():
-        if required:
-            body_params_str = f"    {param} = request.POST['{param}']\n"
-        else:
-            body_params_str = f"    {param} = request.POST.get('{param}')\n)"
+    for parameter in parameters:
+        body_params_str = f"    {parameter} = request.POST['{parameter}']\n"
         total_body_params_str += body_params_str
 
     total_body_params_str = total_body_params_str[:-1]
