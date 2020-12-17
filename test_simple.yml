@@ -13,13 +13,6 @@ paths:
       operationId: createPets
       tags:
         - pets
-      parameters:
-        - name: petId
-          in: query
-          required: false
-          description: The id of the pet to retrieve
-          schema:
-            type: string
       requestBody:
         content:
           application/x-www-form-urlencoded:
