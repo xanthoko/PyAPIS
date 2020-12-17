@@ -21,9 +21,9 @@ class DjangoCreator:
             full_path = full_path[1:]  # remove the first '/'
 
             view_name = get_view_name(ind)
-            method_and_params = self._get_view_details(endpoint_data)
+            per_method_data = self._get_view_details(endpoint_data)
 
-            self._append_view_to_template(ind, method_and_params)
+            self._append_view_to_template(ind, per_method_data)
             self._append_path_to_template(full_path, view_name)
 
         self._finilize_views_template()
@@ -47,8 +47,9 @@ class DjangoCreator:
                 endoint
         """
         # NOTE: will be a list when multiple methods are supported
-        method_and_params = {}
+        per_method_data = {}
 
+        # TODO: handle query params
         for method, view_data in endpoint_data.items():
             parameters = view_data.get('parameters', [])
             path_parameters = [x['name'] for x in parameters if x['in'] == 'path']
@@ -65,16 +66,17 @@ class DjangoCreator:
             else:
                 body_parameters = {}
 
-            method_and_params['method'] = method
-            method_and_params['path_parameters'] = path_parameters
-            method_and_params['body_parameters'] = body_parameters
+            response_codes = list(view_data['responses'].keys())
 
-            # TODO: handle responses
+            per_method_data['method'] = method
+            per_method_data['path_parameters'] = path_parameters
+            per_method_data['body_parameters'] = body_parameters
+            per_method_data['response_codes'] = response_codes
 
-        return method_and_params
+        return per_method_data
 
-    def _append_view_to_template(self, view_index, method_and_params):
-        view_str = get_view_template_with_data(view_index, method_and_params)
+    def _append_view_to_template(self, view_index, per_method_data):
+        view_str = get_view_template_with_data(view_index, per_method_data)
         self.all_views_template += view_str
 
     def _finilize_views_template(self):
