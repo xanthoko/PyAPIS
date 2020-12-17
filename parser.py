@@ -7,12 +7,24 @@ from file_paths import DJANGO_PROJECT_PATH
 from Django.django_parser import DjangoCreator
 
 
-def get_framework_from_arguments():
+def get_command_line_arguments():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('framework', help="The framework to create the API")
+    arg_parser.add_argument('input_path', help='The path of the OpenAPI yml')
+    arg_parser.add_argument('framework', help='The framework to create the API')
 
     args = arg_parser.parse_args()
-    return args.framework
+    return args.framework, args.input_path
+
+
+def validate_arguments(framework, yml_path):
+    supported_frameworks = ['django']
+    if framework not in supported_frameworks:
+        print(f'[ERROR] "{framework}" is not a supported framework')
+        exit()
+
+    if not yml_path.endswith('.yml'):
+        print('[ERROR] OpenAPI input file must be yml')
+        exit()
 
 
 def generate_django_API():
@@ -28,17 +40,11 @@ def generate_django_API():
     print('[INFO] Djang API generated')
 
 
-def validate_given_framework(framework):
-    supported_frameworks = ['django']
-    if framework not in supported_frameworks:
-        print(f'[ERROR] "{framework}" is not a supported framework')
-        exit()
-
-
 if __name__ == '__main__':
-    yml_parser = ResolvingParser('test_simple.yml')
-    framework = get_framework_from_arguments()
-    validate_given_framework(framework)
+    framework, yml_path = get_command_line_arguments()
+    validate_arguments(framework, yml_path)
+
+    yml_parser = ResolvingParser(yml_path)
 
     if framework == 'django':
         generate_django_API()
