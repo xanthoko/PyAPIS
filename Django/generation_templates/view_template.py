@@ -30,9 +30,9 @@ def generate_complete_views_file(filled_views_template):
         f.write(filled_views_file_template)
 
 
-def get_view_template_with_data(view_index, method_and_params):
-    method = method_and_params['method'].upper()
-    response_codes = method_and_params['response_codes']
+def get_view_template_with_data(view_index, per_method_data):
+    method = per_method_data['method'].upper()
+    response_codes = per_method_data['response_codes']
 
     v_temp = VIEW_TEMPLATE
     v_temp = v_temp.replace('{{ view_index }}', str(view_index))
@@ -40,11 +40,13 @@ def get_view_template_with_data(view_index, method_and_params):
     # for now use the first response code
     v_temp = v_temp.replace('{{ response_code }}', response_codes[0])
 
-    path_parameters = [''] + method_and_params['path_parameters']
+    path_parameters = [''] + per_method_data['path_parameters']
     v_temp = _replace_path_parameters(v_temp, path_parameters)
 
-    body_parameters = method_and_params['body_parameters']
-    v_temp = _replace_body_parameters(v_temp, body_parameters)
+    query_parameters = per_method_data['query_parameters']
+    body_parameters = per_method_data['body_parameters']
+    v_temp = _replace_body_and_query_parameters(v_temp, query_parameters,
+                                                body_parameters)
 
     return v_temp
 
@@ -63,37 +65,51 @@ def _replace_path_parameters(template_string, parameters):
     return template_string.replace('{{ path_params }}', str_path_parameters)
 
 
-def _replace_body_parameters(template_string, parameters):
+def _replace_body_and_query_parameters(template_string, query_params, body_params):
     """
     Args:
         tempalte_string (string): The template to fill
-        parameters (dictionary): Body parameters in the following format.
+        query_params (dictionary): Query parameters in the following format.
+            {'param': {is_required}(boolean), ...}
+        body_params (dictionary): Body parameters in the following format.
             {'param': {is_required}(boolean), ...}
     """
-    at_least_one_required_param = any(parameters.values())
-    if at_least_one_required_param:
-        intent = 3
-    else:
-        intent = 2
+    at_least_one_required_param = any(body_params.values()) or any(
+        query_params.values())
 
+    intent = 3 if at_least_one_required_param else 2
     prefix_spaces = _get_prefixed_spaces(intent)
 
-    total_body_params_str = ''
-    for param, required in parameters.items():
-        if required:
-            body_params_str = f"{prefix_spaces}{param} = request.POST['{param}']\n"
-        else:
-            body_params_str = f"{prefix_spaces}{param} = request.POST.get('{param}')\n"
-        total_body_params_str += body_params_str
-
-    total_body_params_str = total_body_params_str[:-1]
+    total_params_str = ''
+    for param, required in body_params.items():
+        total_params_str += _get_param_declaration_str(True, required, param,
+                                                       prefix_spaces)
+    for param, required in query_params.items():
+        total_params_str += _get_param_declaration_str(False, required, param,
+                                                       prefix_spaces)
 
     if at_least_one_required_param:
-        total_body_params_str = REQUIRED_PARAMS_TEMPLATE.replace(
-            '{{ params }}', total_body_params_str)
+        total_params_str = REQUIRED_PARAMS_TEMPLATE.replace(
+            '{{ params }}', total_params_str)
 
-    return template_string.replace('{{ body_params }}', total_body_params_str)
+    return template_string.replace('{{ body_params }}', total_params_str)
 
 
 def _get_prefixed_spaces(number_of_intent):
     return '    ' * number_of_intent
+
+
+def _get_param_declaration_str(is_body, required, parameter, prefix):
+    """Produces and returns the declaration of a body or query parameter.
+
+    Args:
+        is_body (boolean): If True its body param else query
+        required (boolean)
+        parameter (string): The parameter name
+        prefix (string): The intent spaces
+    """
+    method = 'POST' if is_body else 'GET'
+    if required:
+        return f"{prefix}{parameter} = request.{method}['{parameter}']\n"
+    else:
+        return f"{prefix}{parameter} = request.{method}.get('{parameter}')\n"

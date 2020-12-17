@@ -49,10 +49,13 @@ class DjangoCreator:
         # NOTE: will be a list when multiple methods are supported
         per_method_data = {}
 
-        # TODO: handle query params
         for method, view_data in endpoint_data.items():
             parameters = view_data.get('parameters', [])
             path_parameters = [x['name'] for x in parameters if x['in'] == 'path']
+            query_parameters = {
+                x['name']: x['required']
+                for x in parameters if x['in'] == 'query'
+            }
 
             request_body = view_data.get('requestBody')
             if request_body:
@@ -60,9 +63,8 @@ class DjangoCreator:
                 schema = request_body['content'][
                     'application/x-www-form-urlencoded']['schema']
                 properties = schema['properties']
-                required = schema['required']
+                required = schema.get('required', [])
                 body_parameters = {x: x in required for x in properties}
-                # body_parameters = list(properties.keys())
             else:
                 body_parameters = {}
 
@@ -71,6 +73,7 @@ class DjangoCreator:
             per_method_data['method'] = method
             per_method_data['path_parameters'] = path_parameters
             per_method_data['body_parameters'] = body_parameters
+            per_method_data['query_parameters'] = query_parameters
             per_method_data['response_codes'] = response_codes
 
         return per_method_data
