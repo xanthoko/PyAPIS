@@ -1,4 +1,4 @@
-from Django.file_paths import URLS_PATH
+from file_paths import URLS_PATH
 
 URLS_FILE_TEMPLATE = """from django.contrib import admin
 from django.urls import path

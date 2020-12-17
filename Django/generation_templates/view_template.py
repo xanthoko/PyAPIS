@@ -1,4 +1,4 @@
-from Django.file_paths import VIEWS_PATH
+from file_paths import VIEWS_PATH
 
 VIEWS_FILE_TEMPLATE = """from django.http import JsonResponse
 
