@@ -3,7 +3,7 @@
 A project that translates OpenAPI to a set of frameworks.
 
 ## Suported Frameworks
-- [ ] Django
+- [x] Django
 - [ ] Flask
 - [ ] FastAPI
 - [ ] Pyramid
