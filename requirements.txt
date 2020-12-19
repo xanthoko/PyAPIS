@@ -1,2 +1,4 @@
-prance==0.20.0
+fastapi==0.62.0
 openapi-spec-validator==0.2.9
+prance==0.20.0
+uvicorn==0.13.1

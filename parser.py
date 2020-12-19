@@ -1,10 +1,12 @@
 import os
 import argparse
+from pathlib import Path
 
 from prance import ResolvingParser
 
-from file_paths import DJANGO_PROJECT_PATH
+from file_paths import DJANGO_PROJECT_PATH, FASTAPI_PROJECT_PATH
 from Django.django_parser import DjangoCreator
+from FastAPI.fastapi_parser import FastAPICreator
 
 
 def get_command_line_arguments():
@@ -17,7 +19,7 @@ def get_command_line_arguments():
 
 
 def validate_arguments(framework, yml_path):
-    supported_frameworks = ['django']
+    supported_frameworks = ['django', 'fastapi']
     if framework not in supported_frameworks:
         print(f'[ERROR] "{framework}" is not a supported framework')
         exit()
@@ -27,7 +29,7 @@ def validate_arguments(framework, yml_path):
         exit()
 
 
-def generate_django_API():
+def generate_django_API(yml_parser):
     if not os.path.exists(DJANGO_PROJECT_PATH):
         project_name = DJANGO_PROJECT_PATH.split('/')[-1]
         os.chdir('Django')
@@ -40,6 +42,12 @@ def generate_django_API():
     print('[INFO] Djang API generated')
 
 
+def generate_fastAPI_API(yml_parser):
+    Path(FASTAPI_PROJECT_PATH).mkdir(exist_ok=True)
+    fc = FastAPICreator(yml_parser.specification)
+    fc.parse_endpoints()
+
+
 if __name__ == '__main__':
     framework, yml_path = get_command_line_arguments()
     validate_arguments(framework, yml_path)
@@ -47,4 +55,6 @@ if __name__ == '__main__':
     yml_parser = ResolvingParser(yml_path)
 
     if framework == 'django':
-        generate_django_API()
+        generate_django_API(yml_parser)
+    elif framework == 'fastapi':
+        generate_fastAPI_API(yml_parser)
