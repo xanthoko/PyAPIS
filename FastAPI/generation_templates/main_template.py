@@ -2,7 +2,7 @@ from file_paths import FA_MAIN_PATH
 
 MAIN_FILE_TEMPLATE = """from typing import Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Form
 
 app = FastAPI()
 
@@ -27,9 +27,10 @@ def generate_complete_main_file(filled_views_template):
 
 
 def get_view_template_with_data(method, path, response_code, index, path_parameters,
-                                query_parameters):
+                                query_parameters, body_parameters):
     total_param_str = _create_path_and_query_params_str(path_parameters,
-                                                        query_parameters)
+                                                        query_parameters,
+                                                        body_parameters)
 
     v_temp = VIEW_TEMPLATE
     v_temp = v_temp.replace('{{ method }}', method)
@@ -41,16 +42,17 @@ def get_view_template_with_data(method, path, response_code, index, path_paramet
     return v_temp
 
 
-def _create_path_and_query_params_str(path_parameters, query_parameters):
+def _create_path_and_query_params_str(path_parameters, query_parameters,
+                                      body_parameters):
     formated_path_parameters = list(
         map(_dict_param_to_fastapi_param, path_parameters))
     formated_query_parameters = list(
         map(_dict_param_to_fastapi_param, query_parameters))
-    joined_params = formated_path_parameters + formated_query_parameters
+    formated_body_parameters = list(
+        map(_dict_param_to_form_data_param, body_parameters))
 
-    total_param_str = ', '.join(joined_params)
-
-    return total_param_str
+    joined_params = formated_path_parameters + formated_query_parameters + formated_body_parameters
+    return ', '.join(joined_params)
 
 
 def _dict_param_to_fastapi_param(parameter_dict):
@@ -59,3 +61,11 @@ def _dict_param_to_fastapi_param(parameter_dict):
         return f"{parameter_dict['name']}: {ftype}"
     else:
         return f"{parameter_dict['name']}: Optional[{ftype}] = None"
+
+
+def _dict_param_to_form_data_param(parameter_dict):
+    ftype = type_map[parameter_dict['type']]
+    if parameter_dict['required']:
+        return f"{parameter_dict['name']}: {ftype} = Form(...)"
+    else:
+        return f"{parameter_dict['name']}: Optional[{ftype}] = Form(None)"

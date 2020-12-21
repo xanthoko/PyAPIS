@@ -30,10 +30,25 @@ class FastAPICreator:
                     'type': x['schema']['type'],
                     'required': x['required']
                 } for x in parameters if x['in'] == 'query']
+                # body parameters
+                # NOTE: we assume the body params are form data
+                request_body = view_data.get('requestBody')
+                if request_body:
+                    schema = request_body['content'][
+                        'application/x-www-form-urlencoded']['schema']
+                    properties = schema['properties']
+                    required_parameters = schema.get('required', [])
+                    body_parameters = [{
+                        'name': k,
+                        'type': v['type'],
+                        'required': k in required_parameters
+                    } for k, v in properties.items()]
+                else:
+                    body_parameters = {}
 
                 filled_view_template = get_view_template_with_data(
                     method, full_path, response_code, ind, path_parameters,
-                    query_parameters)
+                    query_parameters, body_parameters)
                 self.total_views_str += filled_view_template
 
         self._finilize_views_template()
