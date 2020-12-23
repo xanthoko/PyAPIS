@@ -3,7 +3,7 @@ import argparse
 from prance import ResolvingParser
 
 from Django.django_generator import DjangoGenerator, create_django_project
-from FastAPI.fastapi_parser import FastAPIGenerator, create_fastapi_project
+from FastAPI.fastapi_generator import FastAPIGenerator, create_fastapi_project
 
 
 def get_command_line_arguments():
