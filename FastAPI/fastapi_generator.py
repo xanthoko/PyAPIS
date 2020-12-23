@@ -1,8 +1,15 @@
+from pathlib import Path
+
 from FastAPI.generation_templates.main_template import (generate_complete_main_file,
                                                         get_view_template_with_data)
+from file_paths import FASTAPI_PROJECT_PATH
 
 
-class FastAPICreator:
+def create_fastapi_project():
+    Path(FASTAPI_PROJECT_PATH).mkdir(exist_ok=True)
+
+
+class FastAPIGenerator:
     def __init__(self, parsed_dict):
         self.parsed_dict = parsed_dict
 

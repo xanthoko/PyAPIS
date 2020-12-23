@@ -1,11 +1,22 @@
+import os
+
 from Django.generation_templates.url_template import (generate_complete_urls_file,
                                                       get_path_template_with_data)
 from Django.generation_templates.view_template import (get_view_template_with_data,
                                                        get_view_name,
                                                        generate_complete_views_file)
+from file_paths import DJANGO_PROJECT_PATH
 
 
-class DjangoCreator:
+def create_django_project():
+    if not os.path.exists(DJANGO_PROJECT_PATH):
+        project_name = DJANGO_PROJECT_PATH.split('/')[-1]
+        os.chdir('Django')
+        os.system(f'django-admin startproject {project_name}')
+        os.chdir('..')
+
+
+class DjangoGenerator:
     def __init__(self, parsed_dict):
         self.parsed_dict = parsed_dict
 

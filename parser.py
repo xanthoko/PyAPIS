@@ -1,12 +1,9 @@
-import os
 import argparse
-from pathlib import Path
 
 from prance import ResolvingParser
 
-from file_paths import DJANGO_PROJECT_PATH, FASTAPI_PROJECT_PATH
-from Django.django_parser import DjangoCreator
-from FastAPI.fastapi_parser import FastAPICreator
+from Django.django_generator import DjangoGenerator, create_django_project
+from FastAPI.fastapi_parser import FastAPIGenerator, create_fastapi_project
 
 
 def get_command_line_arguments():
@@ -30,22 +27,21 @@ def validate_arguments(framework, yml_path):
 
 
 def generate_django_API(yml_parser):
-    if not os.path.exists(DJANGO_PROJECT_PATH):
-        project_name = DJANGO_PROJECT_PATH.split('/')[-1]
-        os.chdir('Django')
-        os.system(f'django-admin startproject {project_name}')
-        os.chdir('..')
-        print('[INFO] Django project created')
+    create_django_project()
+    print('[INFO] Django project created')
 
-    dc = DjangoCreator(yml_parser.specification)
-    dc.parse_endpoints()
+    dg = DjangoGenerator(yml_parser.specification)
+    dg.parse_endpoints()
     print('[INFO] Djang API generated')
 
 
-def generate_fastAPI_API(yml_parser):
-    Path(FASTAPI_PROJECT_PATH).mkdir(exist_ok=True)
-    fc = FastAPICreator(yml_parser.specification)
-    fc.parse_endpoints()
+def generate_fastapi_API(yml_parser):
+    create_fastapi_project()
+    print('[INFO] FastAPI project created')
+
+    fg = FastAPIGenerator(yml_parser.specification)
+    fg.parse_endpoints()
+    print('[INFO] FastAPI API generated')
 
 
 if __name__ == '__main__':
@@ -57,4 +53,4 @@ if __name__ == '__main__':
     if framework == 'django':
         generate_django_API(yml_parser)
     elif framework == 'fastapi':
-        generate_fastAPI_API(yml_parser)
+        generate_fastapi_API(yml_parser)
