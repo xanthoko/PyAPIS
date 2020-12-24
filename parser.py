@@ -4,6 +4,7 @@ from prance import ResolvingParser
 
 from Django.django_generator import DjangoGenerator, create_django_project
 from FastAPI.fastapi_generator import FastAPIGenerator, create_fastapi_project
+from Pyramid.pyramid_generator import PyramidGenerator, create_pyramid_project
 
 
 def get_command_line_arguments():
@@ -16,7 +17,9 @@ def get_command_line_arguments():
 
 
 def validate_arguments(framework, yml_path):
-    supported_frameworks = ['django', 'fastapi']
+    """Checks that framework arg is in supported_frameworks list and that
+    given input file has a .yml extention."""
+    supported_frameworks = ['django', 'fastapi', 'pyramid']
     if framework not in supported_frameworks:
         print(f'[ERROR] "{framework}" is not a supported framework')
         exit()
@@ -44,6 +47,15 @@ def generate_fastapi_API(yml_parser):
     print('[INFO] FastAPI API generated')
 
 
+def generate_pyramid_API(yml_parser):
+    create_pyramid_project()
+    print('[INFO] Pyramid project created')
+
+    pg = PyramidGenerator(yml_parser.specification)
+    pg.parse_endpoints()
+    print('[INFO] Pyramid API generated')
+
+
 if __name__ == '__main__':
     framework, yml_path = get_command_line_arguments()
     validate_arguments(framework, yml_path)
@@ -54,3 +66,5 @@ if __name__ == '__main__':
         generate_django_API(yml_parser)
     elif framework == 'fastapi':
         generate_fastapi_API(yml_parser)
+    elif framework == 'pyramid':
+        generate_pyramid_API(yml_parser)
